@@ -1,6 +1,6 @@
 {
   "name": "trello-state",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Construct the state of trello cards based upon a date.",
   "main": "dist/trello-state.js",
   "scripts": {
