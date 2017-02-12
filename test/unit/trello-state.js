@@ -1,31 +1,30 @@
 import trelloState from '../../src/trello-state';
 
 describe('trelloState', () => {
-    describe('on', () => {
-        it('should return an empty array if nothing was there', () => {
-            const state = trelloState.on(testData, new Date(2010, 1));
-            expect(state.length).to.eql(0);
-        });
-        
-        it('should rewind to the original list', () => {
-            const d = new Date(Date.parse('2017-02-10T02:08:10.736Z'));
-            const state = trelloState.on(testData, d);
-            expect(state.length).to.eql(1);
-            const card = state[0];
-            expect(card.idList).to.eql('589d207faf051d1a27ac4a3e');
-            expect(testData[0].idList).not.to.eql(card.idList); // ensure the original wasn't modified
-            expect(card.actions.length).to.eql(1);
-        });
-        
-        it('should not change anything if there is nothing to change', () => {
-            const state = trelloState.on(testData, new Date(2020, 1));
-            expect(state.length).to.eql(1);
-            const card = state[0];
-            expect(card.idList).to.eql('589d20816cffc3bce0ecb5da');
-            expect(card.actions.length).to.eql(2);
-            
-        });
+  describe('on', () => {
+    it('should return an empty array if nothing was there', () => {
+      const state = trelloState.on(testData, new Date(2010, 1));
+      expect(state.length).to.eql(0);
     });
+    
+    it('should rewind to the original list', () => {
+      const d = new Date(Date.parse('2017-02-10T02:08:10.736Z'));
+      const state = trelloState.on(testData, d);
+      expect(state.length).to.eql(1);
+      const card = state[0];
+      expect(card.idList).to.eql('589d207faf051d1a27ac4a3e');
+      expect(testData[0].idList).not.to.eql(card.idList); // ensure the original wasn't modified
+      expect(card.actions.length).to.eql(1);
+    });
+    
+    it('should not change anything if there is nothing to change', () => {
+      const state = trelloState.on(testData, new Date(2020, 1));
+      expect(state.length).to.eql(1);
+      const card = state[0];
+      expect(card.idList).to.eql('589d20816cffc3bce0ecb5da');
+      expect(card.actions.length).to.eql(2);
+    });
+  });
 });
 
 
