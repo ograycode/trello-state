@@ -54,32 +54,101 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 0 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	exports.default = {
-	    on: function on(cards, time) {
-	        var state = [];
-	        cards.forEach(function (card) {
-	            var clone = JSON.parse(JSON.stringify(card));
-	            clone.actions.forEach(function (action) {
-	                if (time < new Date(Date.parse(action.date)) && action.data.old) {
-	                    for (var key in action.data.old) {
-	                        clone[key] = action.data.old[key];
-	                    }
-	                }
-	            });
-	            clone.actions = clone.actions.filter(function (action) {
-	                return time > new Date(Date.parse(action.date));
-	            });
-	            if (clone.actions.length > 0) {
-	                state.push(clone);
-	            }
-	        });
-	        return state;
+	  on: function on(cards, time) {
+	    var state = [];
+	    cards.forEach(function (card) {
+	      var clone = JSON.parse(JSON.stringify(card));
+	      clone.actions.forEach(function (action) {
+	        if (time < new Date(Date.parse(action.date)) && action.data.old) {
+	          for (var key in action.data.old) {
+	            clone[key] = action.data.old[key];
+	          }
+	        }
+	      });
+	      clone.actions = clone.actions.filter(function (action) {
+	        return time > new Date(Date.parse(action.date));
+	      });
+	      if (clone.actions.length > 0) {
+	        state.push(clone);
+	      }
+	    });
+	    return state;
+	  },
+	  cycleTime: function cycleTime(card, startingLists, endingLists) {
+	    var _this = this;
+	
+	    var start = void 0,
+	        end = void 0;
+	    startingLists.forEach(function (list) {
+	      var last = _this.findLast(card, list);
+	      if (!start && last || last > start) {
+	        start = last;
+	      }
+	    });
+	
+	    endingLists.forEach(function (list) {
+	      var earliest = _this.findEarliest(card, list);
+	      if (!end && earliest || earliest < end) {
+	        end = earliest;
+	      }
+	    });
+	
+	    if (!start || !end) {
+	      return -1;
 	    }
+	    return Math.abs(start.getTime() - end.getTime());
+	  },
+	  findEarliest: function findEarliest(card, listId) {
+	    var earliest = void 0;
+	    var isListBefore = false;
+	    card.actions.forEach(function (action) {
+	      var date = new Date(Date.parse(action.date));
+	      if (action.type === 'createCard' && isListBefore) {
+	        isListBefore = false;
+	        earliest = date;
+	      } else if (action.type === 'updateCard') {
+	        if (action.data.listBefore && action.data.listBefore.id === listId) {
+	          //need to find the next action that changed it, or created event.
+	          isListBefore = true;
+	        } else if (action.data.listAfter && action.data.listAfter.id === listId) {
+	          if (!earliest || earliest > date) {
+	            earliest = date;
+	          }
+	        }
+	      }
+	    });
+	    return earliest;
+	  },
+	  findLast: function findLast(card, listId) {
+	    var last = void 0;
+	    var isListBefore = false;
+	    card.actions.forEach(function (action) {
+	      var date = new Date(Date.parse(action.date));
+	      if (action.type === 'createCard' && isListBefore) {
+	        isListBefore = false;
+	        if (!last || last < date) {
+	          last = date;
+	        }
+	      } else if (action.type === 'updateCard') {
+	        if (action.data.listAfter && action.data.listAfter.id === listId) {
+	          if (!last || last < date) {
+	            last = date;
+	          }
+	          isListBefore = false;
+	        } else if (action.data.listBefore.id === listId) {
+	          // need to find either the last after event or created event.
+	          isListBefore = true;
+	        }
+	      }
+	    });
+	    return last;
+	  }
 	};
 
 /***/ }

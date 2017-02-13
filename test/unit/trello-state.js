@@ -6,7 +6,7 @@ describe('trelloState', () => {
       const state = trelloState.on(testData, new Date(2010, 1));
       expect(state.length).to.eql(0);
     });
-    
+
     it('should rewind to the original list', () => {
       const d = new Date(Date.parse('2017-02-10T02:08:10.736Z'));
       const state = trelloState.on(testData, d);
@@ -16,13 +16,65 @@ describe('trelloState', () => {
       expect(testData[0].idList).not.to.eql(card.idList); // ensure the original wasn't modified
       expect(card.actions.length).to.eql(1);
     });
-    
+
     it('should not change anything if there is nothing to change', () => {
       const state = trelloState.on(testData, new Date(2020, 1));
       expect(state.length).to.eql(1);
       const card = state[0];
       expect(card.idList).to.eql('589d20816cffc3bce0ecb5da');
       expect(card.actions.length).to.eql(2);
+    });
+  });
+  
+  describe('findEarliest', () => {
+    it('should find the earliest time after switching lists', () => {
+      const earliestDate = trelloState.findEarliest(testData[0], '589d20816cffc3bce0ecb5da');
+      const expected = new Date(Date.parse('2017-02-10T02:08:16.048Z'));
+      expect(earliestDate).to.eql(expected);
+    });
+    
+    it('should return created at if that was the original list', () => {
+      const earliestDate = trelloState.findEarliest(testData[0], '589d207faf051d1a27ac4a3e');
+      const expected = new Date(Date.parse('2017-02-10T02:08:05.736Z'));
+      expect(earliestDate).to.eql(expected);
+    });
+    
+    it('should return undefined if it never touched the list', () => {
+      const earliestDate = trelloState.findEarliest(testData[0], 'fakelist');
+      expect(earliestDate).to.eql(undefined);
+    });
+  });
+  
+  describe('findLast', () => {
+    it('should find the last time after switching', () => {
+      const lastDate = trelloState.findLast(testData[0], '589d20816cffc3bce0ecb5da');
+      const expected = new Date(Date.parse('2017-02-10T02:08:16.048Z'));
+      expect(lastDate).to.eql(expected);
+    });
+    
+    it('should return the created at time if it was the original list', () => {
+      const lastDate = trelloState.findLast(testData[0], '589d207faf051d1a27ac4a3e');
+      const expected = new Date(Date.parse('2017-02-10T02:08:05.736Z'));
+      expect(lastDate).to.eql(expected);
+    });
+    
+    it('should return undefined if it never touched the list', () => {
+      const earliestDate = trelloState.findEarliest(testData[0], 'fakelist');
+      expect(earliestDate).to.eql(undefined);
+    });
+  });
+  
+  describe('cycleTime', () => {
+    it('should return milliseconds between two (or more) lists', () => {
+      const start = ['589d207faf051d1a27ac4a3e'];
+      const end = ['589d20816cffc3bce0ecb5da'];
+      const millis = trelloState.cycleTime(testData[0], start, end);
+      expect(millis).to.eql(10312);
+    });
+
+    it('should return -1 if time is not determined', () => {
+      const result = trelloState.cycleTime(testData[0], ['1'], ['2']);
+      expect(result).to.eql(-1);
     });
   });
 });
